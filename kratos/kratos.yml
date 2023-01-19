@@ -1,0 +1,125 @@
+version: v0.8.0-alpha.3
+
+dsn: memory
+
+serve:
+  public:
+    base_url: http://localhost:4433/
+    cors:
+      enabled: true
+      allowed_origins:
+        - http://localhost:4433
+        - http://localhost:4434
+        - http://localhost:3000
+      allowed_methods:
+        - POST
+        - GET
+        - PUT
+        - PATCH
+        - DELETE
+      allowed_headers:
+        - Authorization
+        - Cookie
+        - Content-Type
+      exposed_headers:
+        - Content-Type
+        - Set-Cookie
+  admin:
+    base_url: http://localhost:4434/
+
+selfservice:
+  flows:
+    registration:
+      after:
+        oidc:
+          hooks:
+            - hook: session
+
+  default_browser_return_url: http://localhost:3000/ui/welcome
+  allowed_return_urls:
+    - http://localhost:3000
+    
+
+  methods:
+    password:
+      enabled: true
+
+    oidc:
+      config:
+        providers:
+          - id: google # this is `<provider-id>` in the Authorization callback URL. DO NOT CHANGE IT ONCE SET!
+            provider: google
+            mapper_url: "base64://bG9jYWwgY2xhaW1zID0gewogIGVtYWlsX3ZlcmlmaWVkOiB0cnVlLAp9ICsgc3RkLmV4dFZhcignY2xhaW1zJyk7Cgp7CiAgaWRlbnRpdHk6IHsKICAgIHRyYWl0czogewogICAgICBbaWYgJ2VtYWlsJyBpbiBjbGFpbXMgJiYgY2xhaW1zLmVtYWlsX3ZlcmlmaWVkIHRoZW4gJ2VtYWlsJyBlbHNlIG51bGxdOiBjbGFpbXMuZW1haWwsCiAgICAgIGZpcnN0X25hbWU6IGNsYWltcy5naXZlbl9uYW1lLAogICAgICBsYXN0X25hbWU6IGNsYWltcy5mYW1pbHlfbmFtZSwKICAgICAgW2lmICdoZCcgaW4gY2xhaW1zICYmIGNsYWltcy5lbWFpbF92ZXJpZmllZCB0aGVuICdoZCcgZWxzZSBudWxsXTogY2xhaW1zLmhkLAogICAgfSwKICB9LAp9"
+            client_id: 692463599524-iv0q53m2fs8dobtl73o3oafni1cl4lac.apps.googleusercontent.com
+            client_secret: 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
+            scope:
+              - email
+              - profile
+            requested_claims:
+              id_token:
+                email:
+                  essential: true
+                email_verified:
+                  essential: true
+                given_name:
+                  essential: true
+                family_name: null
+                hd: null
+      enabled: true
+
+  flows:
+    error:
+      ui_url: http://localhost:3000/ui/error
+
+    settings:
+      ui_url: http://localhost:3000/ui/settings
+      privileged_session_max_age: 15m
+
+    recovery:
+      enabled: true
+      ui_url: http://localhost:3000/ui/recovery
+
+    verification:
+      enabled: true
+      ui_url: http://localhost:3000/ui/verification
+      after:
+        default_browser_return_url: http://localhost:3000/ui/welcome
+
+    logout:
+      after:
+        default_browser_return_url: http://localhost:3000/ui/login
+
+    login:
+      ui_url: http://localhost:3000/ui/login
+
+    registration:
+      ui_url: http://localhost:3000/ui/registration
+      after:
+        password:
+          hooks:
+            -
+              hook: session
+
+log:
+  level: info
+  format: text
+
+secrets:
+  cookie:
+    # PLEASE-CHANGE-ME-I-AM-VERY-INSECURE
+    - deVuA0F46ZWFh3v4wGPVEQDlVXMbLKzG
+
+hashers:
+  algorithm: bcrypt
+  bcrypt:
+    cost: 8
+
+identity:
+  default_schema_id: preset://email
+  schemas:
+    - id: preset://email
+      url: file:///etc/config/kratos/identity.schema.json
+
+courier:
+  smtp:
+    connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true
